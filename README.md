@@ -74,5 +74,5 @@ Week 5 flagged as partial — excluded from decisions
 | `code_node.js` | Anomaly detection and week classification logic |
 | `groq_prompt.md` | Full AI prompt for brief generation |
 | `bigquery_query.sql` | GA4 SQL query running inside BigQuery node |
-| `sample_output/email_brief.png` | Sample email output |
-| `sample_output/dashboard.png` | Sample Looker Studio dashboard |
+| `weekly_growth_agent.png` | n8n Agent workflow |
+| `weekly_growth_dashboard.png` | Sample Looker Studio dashboard |
