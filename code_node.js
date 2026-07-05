@@ -1,3 +1,7 @@
+// Weekly Growth Intelligence Agent — Code Node
+// Purpose: Detect week-over-week anomalies from GA4 BigQuery data
+// Every execution is stamped with a unique run_id for auditability
+
 // Convert week number to actual Monday date
 function weekToDate(weekNum) {
   const jan1 = new Date('2021-01-01');
@@ -8,6 +12,10 @@ function weekToDate(weekNum) {
   targetDate.setDate(firstMonday.getDate() + (weekNum - 1) * 7);
   return targetDate.toISOString().split('T')[0];
 }
+
+// Unique run ID — ties email output to Sheet rows for auditability
+const runId = Date.now().toString();
+const runTimestamp = new Date().toISOString();
 
 // Get all rows from BigQuery output
 const rows = $input.all();
@@ -31,6 +39,7 @@ const anomalies = [];
 const summary = [];
 
 for (const channel in channelData) {
+  // Sort numerically — prevents 1,10,2,3 alphabetical ordering bug
   const weeks = Object.keys(channelData[channel]).sort((a, b) => a - b);
 
   for (let i = 1; i < weeks.length; i++) {
@@ -40,6 +49,7 @@ for (const channel in channelData) {
     const changePct = ((change / lastWeek) * 100).toFixed(1);
 
     summary.push({
+      run_id: runId,
       channel,
       week_start_date: weekToDate(parseInt(weeks[i])),
       week_number: parseInt(weeks[i]),
@@ -47,12 +57,13 @@ for (const channel in channelData) {
       prev_purchases: lastWeek,
       change,
       change_pct: parseFloat(changePct),
-      generated_at: new Date().toISOString()
+      generated_at: runTimestamp
     });
 
-    // Flag as anomaly if change is more than 20% in either direction
+    // Flag anomaly if change exceeds 20% in either direction
     if (Math.abs(changePct) > 20) {
       anomalies.push({
+        run_id: runId,
         channel,
         week_start_date: weekToDate(parseInt(weeks[i])),
         week_number: parseInt(weeks[i]),
@@ -61,7 +72,7 @@ for (const channel in channelData) {
         change,
         change_pct: parseFloat(changePct),
         direction: change > 0 ? 'UP' : 'DOWN',
-        generated_at: new Date().toISOString()
+        generated_at: runTimestamp
       });
     }
   }
@@ -69,9 +80,10 @@ for (const channel in channelData) {
 
 return [{
   json: {
+    run_id: runId,
     summary,
     anomalies,
     anomaly_count: anomalies.length,
-    generated_at: new Date().toISOString()
+    generated_at: runTimestamp
   }
 }];
